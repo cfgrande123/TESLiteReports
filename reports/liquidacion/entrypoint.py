@@ -85,7 +85,7 @@ def _get_active_subscriptions(client, parameters):
         query &= R().billing.period.uom.oneof(parameters['period']['choices'])
 #    if parameters.get('status') and parameters['status']['all'] is False:
 #        query &= R().status.oneof(parameters['status']['choices'])
-    query &= R().status.status.oneof(['active'])
+    query &= R().status.oneof(['active'])
     return client.ns('subscriptions').assets.filter(query)
 
 def _get_terminated_subscriptions(client, parameters):
@@ -100,7 +100,7 @@ def _get_terminated_subscriptions(client, parameters):
         query &= R().billing.period.uom.oneof(parameters['period']['choices'])
 #    if parameters.get('status') and parameters['status']['all'] is False:
 #        query &= R().status.oneof(parameters['status']['choices'])
-    query &= R().status.status.oneof(['terminated'])
+    query &= R().status.oneof(['terminated'])
     return client.ns('subscriptions').assets.filter(query)
 
 def calculate_period(delta, uom):
@@ -170,8 +170,8 @@ def _process_line(subscription, primary_vendor_key):
         get_value(subscription.get('tiers', ''), 'customer', 'id'),
         get_value(subscription.get('tiers', ''), 'customer', 'name'),
         get_value(subscription.get('tiers', ''), 'customer', 'external_id'),
-        get_value(subscription.get('tiers', ''), 'tier1', 'id'),
-        get_value(subscription.get('tiers', ''), 'tier1', 'name'),
+        subscription["tiers"]["customer"]["contact_info"]["contact"]["first_name"],
+        subscription["tiers"]["customer"]["taxid"],
         get_value(subscription.get('tiers', ''), 'tier1', 'external_id'),
         get_value(subscription.get('tiers', ''), 'tier2', 'id'),
         get_value(subscription.get('tiers', ''), 'tier2', 'name'),
