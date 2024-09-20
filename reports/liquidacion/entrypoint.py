@@ -29,8 +29,9 @@ def generate(
     extra_context_callback=None,
 ):
     products_primary_keys = {}
-    subscriptions = _get_subscriptions(client, parameters)
-    total = subscriptions.count()
+    act_subscriptions = _get_active_subscriptions(client, parameters)
+    term_subscriptions = _get_terminated_subscriptions(client, parameters)
+    total = act_subscriptions.count()+term_subscriptions.count()
     progress = 0
     if renderer_type == 'csv':
         yield HEADERS
@@ -38,7 +39,7 @@ def generate(
         total += 1
         progress_callback(progress, total)
 
-    for subscription in subscriptions:
+    for subscription in act_subscriptions:
         primary_vendor_key = get_primary_key(
             subscription.get('params', []),
             subscription['product']['id'],
@@ -55,23 +56,52 @@ def generate(
         progress += 1
         progress_callback(progress, total)
 
+    for subscription in term_subscriptions:
+        primary_vendor_key = get_primary_key(
+            subscription.get('params', []),
+            subscription['product']['id'],
+            client,
+            products_primary_keys,
+        )
+        if renderer_type == 'json':
+            yield {
+                HEADERS[idx].replace(' ', '_').lower(): value
+                for idx, value in enumerate(_process_line(subscription, primary_vendor_key))
+            }
+        else:
+            yield _process_line(subscription, primary_vendor_key)
+        progress += 1
+        progress_callback(progress, total)
 
-def _get_subscriptions(client, parameters):
+def _get_active_subscriptions(client, parameters):
     query = R()
-    if parameters.get('date') and parameters['date']['after'] != '':
-        query &= R().events.created.at.ge(parameters['date']['after'])
-        query &= R().events.created.at.le(parameters['date']['before'])
+    if parameters.get('date') and parameters['date']['after'] != '':       
+        query &= R().events.updated.at.le(parameters['date']['before'])
     if parameters.get('product') and parameters['product']['all'] is False:
         query &= R().product.id.oneof(parameters['product']['choices'])
     if parameters.get('mkp') and parameters['mkp']['all'] is False:
         query &= R().marketplace.id.oneof(parameters['mkp']['choices'])
     if parameters.get('period') and parameters['period']['all'] is False:
         query &= R().billing.period.uom.oneof(parameters['period']['choices'])
-    if parameters.get('status') and parameters['status']['all'] is False:
-        query &= R().status.oneof(parameters['status']['choices'])
-
+#    if parameters.get('status') and parameters['status']['all'] is False:
+#        query &= R().status.oneof(parameters['status']['choices'])
+    query &= R().status.status.oneof(['active'])
     return client.ns('subscriptions').assets.filter(query)
 
+def _get_terminated_subscriptions(client, parameters):
+    query = R()
+    if parameters.get('date') and parameters['date']['after'] != '':       
+        query &= R().events.updated.at.ge(parameters['date']['after'])
+    if parameters.get('product') and parameters['product']['all'] is False:
+        query &= R().product.id.oneof(parameters['product']['choices'])
+    if parameters.get('mkp') and parameters['mkp']['all'] is False:
+        query &= R().marketplace.id.oneof(parameters['mkp']['choices'])
+    if parameters.get('period') and parameters['period']['all'] is False:
+        query &= R().billing.period.uom.oneof(parameters['period']['choices'])
+#    if parameters.get('status') and parameters['status']['all'] is False:
+#        query &= R().status.oneof(parameters['status']['choices'])
+    query &= R().status.status.oneof(['terminated'])
+    return client.ns('subscriptions').assets.filter(query)
 
 def calculate_period(delta, uom):
     if delta == 1:
