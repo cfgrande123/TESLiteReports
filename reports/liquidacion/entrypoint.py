@@ -55,21 +55,24 @@ def _get_requests(client, parameters):
     all_status = ['tiers_setup', 'inquiring', 'pending', 'approved', 'failed']
 
     query = R()
-    query &= R().created.ge(parameters['date']['after'])
-    query &= R().created.le(parameters['date']['before'])
+    query &= R().updated.ge(parameters['date']['after'])
+    query &= R().updated.le(parameters['date']['before'])
+    query &= R().rr_type.eq("Purchase")
+    query &= R().rr_status.eq("Approved")
+    
 
-    if parameters.get('product') and parameters['product']['all'] is False:
-        query &= R().asset.product.id.oneof(parameters['product']['choices'])
-    if parameters.get('rr_type') and parameters['rr_type']['all'] is False:
-        query &= R().type.oneof(parameters['rr_type']['choices'])
-    if parameters.get('rr_status') and parameters['rr_status']['all'] is False:
-        query &= R().status.oneof(parameters['rr_status']['choices'])
-    else:
-        query &= R().status.oneof(all_status)
-    if parameters.get('mkp') and parameters['mkp']['all'] is False:
-        query &= R().asset.marketplace.id.oneof(parameters['mkp']['choices'])
-    if parameters.get('hub') and parameters['hub']['all'] is False:
-        query &= R().asset.connection.hub.id.oneof(parameters['hub']['choices'])
+   # if parameters.get('product') and parameters['product']['all'] is False:
+   #     query &= R().asset.product.id.oneof(parameters['product']['choices'])
+   # if parameters.get('rr_type') and parameters['rr_type']['all'] is False:
+   #     query &= R().type.oneof(parameters['rr_type']['choices'])
+   # if parameters.get('rr_status') and parameters['rr_status']['all'] is False:
+   #     query &= R().status.oneof(parameters['rr_status']['choices'])
+   # else:
+   #     query &= R().status.oneof(all_status)
+   # if parameters.get('mkp') and parameters['mkp']['all'] is False:
+   #     query &= R().asset.marketplace.id.oneof(parameters['mkp']['choices'])
+   # if parameters.get('hub') and parameters['hub']['all'] is False:
+   #     query &= R().asset.connection.hub.id.oneof(parameters['hub']['choices'])
 
     return client.requests.filter(query).select(
         '-asset.items',
