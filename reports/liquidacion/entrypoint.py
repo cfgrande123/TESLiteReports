@@ -175,7 +175,7 @@ def _process_line(subscription, primary_vendor_key):
         subscription["tiers"]["customer"]["contact_info"]["contact"]["first_name"],
         subscription["tiers"]["customer"]["tax_id"],
         subscription["params"]["subscriptionID"].value,
-        get_sub_parameter(subscription,"SubscriptionID_Fractalia),
+        get_sub_parameter(subscription,"SubscriptionID_Fractalia"),
         get_value(subscription.get('tiers', ''), 'tier2', 'name'),
         get_value(subscription.get('tiers', ''), 'tier2', 'external_id'),
         get_value(subscription['connection'], 'provider', 'id'),
