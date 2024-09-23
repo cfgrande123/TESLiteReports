@@ -17,8 +17,6 @@ HEADERS = (
     'Vendor Account ID', 'Vendor Account Name',
     'Product ID', 'Product Name',
 )
-Subscription ID	Subscription External ID	Vendor Reconciliation ID	Subscription Type	Creation date	Updated date	Status	Billing Period	Anniversary Day	Anniversary Month	Contract ID	Contract Name	Customer ID	Customer Name	Customer External ID	Tax ID	KD	Bitdefender ID	Fractalia ID	Tier 1 Name	Tier 1 External ID	Vendor Account ID	Vendor Account Name	Product ID	Product Name
-
 
 def generate(
     client=None,
