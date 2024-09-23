@@ -6,8 +6,8 @@
 
 from connect.client import R
 
-from ..utils import convert_to_datetime, get_value
-
+from ..utils import convert_to_datetime, get_sub_parameter, get_value
+    
 HEADERS = (
     'Subscription ID', 'Subscription External ID', 'Vendor primary key',
     'Subscription Type', 'Creation date', 'Updated date', 'Status', 'Billing Period',
@@ -86,6 +86,7 @@ def _get_active_subscriptions(client, parameters):
 #    if parameters.get('status') and parameters['status']['all'] is False:
 #        query &= R().status.oneof(parameters['status']['choices'])
     query &= R().status.oneof(['active'])
+    query &= R().connection.type.eq('production')
     return client.ns('subscriptions').assets.filter(query)
 
 def _get_terminated_subscriptions(client, parameters):
@@ -101,6 +102,7 @@ def _get_terminated_subscriptions(client, parameters):
 #    if parameters.get('status') and parameters['status']['all'] is False:
 #        query &= R().status.oneof(parameters['status']['choices'])
     query &= R().status.oneof(['terminated'])
+    query &= R().connection.type.eq('production') 
     return client.ns('subscriptions').assets.filter(query)
 
 def calculate_period(delta, uom):
@@ -172,7 +174,7 @@ def _process_line(subscription, primary_vendor_key):
         get_value(subscription.get('tiers', ''), 'customer', 'external_id'),
         subscription["tiers"]["customer"]["contact_info"]["contact"]["first_name"],
         subscription["tiers"]["customer"]["tax_id"],
-        get_value(subscription.get('tiers', ''), 'tier1', 'external_id'),
+        get_sub_parameter(subscription,"Subscription ID"),
         get_value(subscription.get('tiers', ''), 'tier2', 'id'),
         get_value(subscription.get('tiers', ''), 'tier2', 'name'),
         get_value(subscription.get('tiers', ''), 'tier2', 'external_id'),
