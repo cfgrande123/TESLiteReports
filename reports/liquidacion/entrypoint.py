@@ -67,15 +67,11 @@ def _get_active_subscriptions(client, parameters):
     query = R()
     if parameters.get('date') and parameters['date']['after'] != '':       
         query &= R().events.updated.at.le(parameters['date']['before'])
-#    if parameters.get('product') and parameters['product']['all'] is False:
-#        query &= R().product.id.oneof(parameters['product']['choices'])
     query &= R().product.id.eq("PRD-825-728-174")
     if parameters.get('mkp') and parameters['mkp']['all'] is False:
         query &= R().marketplace.id.oneof(parameters['mkp']['choices'])
     if parameters.get('period') and parameters['period']['all'] is False:
         query &= R().billing.period.uom.oneof(parameters['period']['choices'])
-#    if parameters.get('status') and parameters['status']['all'] is False:
-#        query &= R().status.oneof(parameters['status']['choices'])
     query &= R().status.oneof(['active'])
     query &= R().connection.type.eq('production')
     return client.ns('subscriptions').assets.filter(query)
@@ -84,15 +80,11 @@ def _get_terminated_subscriptions(client, parameters):
     query = R()
     if parameters.get('date') and parameters['date']['after'] != '':       
         query &= R().events.updated.at.ge(parameters['date']['after'])
-#    if parameters.get('product') and parameters['product']['all'] is False:
-#        query &= R().product.id.oneof(parameters['product']['choices'])
     query &= R().product.id.eq("PRD-825-728-174")
     if parameters.get('mkp') and parameters['mkp']['all'] is False:
         query &= R().marketplace.id.oneof(parameters['mkp']['choices'])
     if parameters.get('period') and parameters['period']['all'] is False:
         query &= R().billing.period.uom.oneof(parameters['period']['choices'])
-#    if parameters.get('status') and parameters['status']['all'] is False:
-#        query &= R().status.oneof(parameters['status']['choices'])
     query &= R().status.oneof(['terminated'])
     query &= R().connection.type.eq('production') 
     return client.ns('subscriptions').assets.filter(query)
@@ -164,9 +156,8 @@ def _process_line(subscription, primary_vendor_key,secondary_vendor_key):
         get_value(subscription.get('tiers', ''), 'customer', 'id'),
         get_value(subscription.get('tiers', ''), 'customer', 'name'),
         get_value(subscription.get('tiers', ''), 'customer', 'external_id'),
-        subscription["tiers"]["customer"]["contact_info"]["contact"]["first_name"],
         subscription["tiers"]["customer"]["tax_id"],
-        #subscription["params"]["subscriptionID"].value,
+        subscription["tiers"]["customer"]["contact_info"]["contact"]["first_name"],
         primary_vendor_key,
         secondary_vendor_key,
         get_value(subscription.get('tiers', ''), 'tier1', 'name'),
