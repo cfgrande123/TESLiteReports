@@ -171,7 +171,7 @@ def _process_line(subscription, primary_vendor_key):
         get_value(subscription.get('tiers', ''), 'customer', 'name'),
         get_value(subscription.get('tiers', ''), 'customer', 'external_id'),
         subscription["tiers"]["customer"]["contact_info"]["contact"]["first_name"],
-        subscription["tiers"]["customer"]["taxid"],
+        subscription["tiers"]["customer"]["tax_id"],
         get_value(subscription.get('tiers', ''), 'tier1', 'external_id'),
         get_value(subscription.get('tiers', ''), 'tier2', 'id'),
         get_value(subscription.get('tiers', ''), 'tier2', 'name'),
