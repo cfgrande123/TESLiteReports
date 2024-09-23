@@ -13,12 +13,11 @@ HEADERS = (
     'Subscription Type', 'Creation date', 'Updated date', 'Status', 'Billing Period',
     'Anniversary Day', 'Anniversary Month', 'Contract ID', 'Contract Name',
     'Customer ID', 'Customer Name', 'Customer External ID',
-    'Tier 1 ID', 'Tier 1 Name', 'Tier 1 External ID',
-    'Tier 2 ID', 'Tier 2 Name', 'Tier 2 External ID',
-    'Provider Account ID', 'Provider Account name',
+    'Tax ID', 'KD',	'Bitdefender ID', 'Fractalia ID', 'Tier 1 Name', 'Tier 1 External ID',
     'Vendor Account ID', 'Vendor Account Name',
-    'Product ID', 'Product Name', 'Hub ID', 'Hub Name',
+    'Product ID', 'Product Name',
 )
+Subscription ID	Subscription External ID	Vendor Reconciliation ID	Subscription Type	Creation date	Updated date	Status	Billing Period	Anniversary Day	Anniversary Month	Contract ID	Contract Name	Customer ID	Customer Name	Customer External ID	Tax ID	KD	Bitdefender ID	Fractalia ID	Tier 1 Name	Tier 1 External ID	Vendor Account ID	Vendor Account Name	Product ID	Product Name
 
 
 def generate(
@@ -172,14 +171,10 @@ def _process_line(subscription, primary_vendor_key,secondary_vendor_key):
         #subscription["params"]["subscriptionID"].value,
         primary_vendor_key,
         secondary_vendor_key,
-        get_value(subscription.get('tiers', ''), 'tier2', 'name'),
-        get_value(subscription.get('tiers', ''), 'tier2', 'external_id'),
-        get_value(subscription['connection'], 'provider', 'id'),
-        get_value(subscription['connection'], 'provider', 'name'),
+        get_value(subscription.get('tiers', ''), 'tier1', 'name'),
+        get_value(subscription.get('tiers', ''), 'tier1', 'external_id'),
         get_value(subscription['connection'], 'vendor', 'id'),
         get_value(subscription['connection'], 'vendor', 'name'),
         get_value(subscription, 'product', 'id'),
         get_value(subscription, 'product', 'name'),
-        get_value(subscription['connection'], 'hub', 'id'),
-        get_value(subscription['connection'], 'hub', 'name'),
     )
