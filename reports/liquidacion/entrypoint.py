@@ -70,8 +70,9 @@ def _get_active_subscriptions(client, parameters):
     query = R()
     if parameters.get('date') and parameters['date']['after'] != '':       
         query &= R().events.updated.at.le(parameters['date']['before'])
-    if parameters.get('product') and parameters['product']['all'] is False:
-        query &= R().product.id.oneof(parameters['product']['choices'])
+#    if parameters.get('product') and parameters['product']['all'] is False:
+#        query &= R().product.id.oneof(parameters['product']['choices'])
+    query &= R().product.id.eq("PRD-825-728-174")
     if parameters.get('mkp') and parameters['mkp']['all'] is False:
         query &= R().marketplace.id.oneof(parameters['mkp']['choices'])
     if parameters.get('period') and parameters['period']['all'] is False:
@@ -86,8 +87,9 @@ def _get_terminated_subscriptions(client, parameters):
     query = R()
     if parameters.get('date') and parameters['date']['after'] != '':       
         query &= R().events.updated.at.ge(parameters['date']['after'])
-    if parameters.get('product') and parameters['product']['all'] is False:
-        query &= R().product.id.oneof(parameters['product']['choices'])
+#    if parameters.get('product') and parameters['product']['all'] is False:
+#        query &= R().product.id.oneof(parameters['product']['choices'])
+    query &= R().product.id.eq("PRD-825-728-174")
     if parameters.get('mkp') and parameters['mkp']['all'] is False:
         query &= R().marketplace.id.oneof(parameters['mkp']['choices'])
     if parameters.get('period') and parameters['period']['all'] is False:
