@@ -40,36 +40,29 @@ def generate(
         progress_callback(progress, total)
 
     for subscription in act_subscriptions:
-        primary_vendor_key = get_primary_key(
-            subscription.get('params', []),
-            subscription['product']['id'],
-            client,
-            products_primary_keys,
-        )
+        primary_vendor_key = get_sub_parameter(subscription,"subscriptionID")
+        secondary_vendor_key =  get_sub_parameter(subscription,"SubscriptionID_Fractalia")
         if renderer_type == 'json':
             yield {
                 HEADERS[idx].replace(' ', '_').lower(): value
-                for idx, value in enumerate(_process_line(subscription, primary_vendor_key))
+                for idx, value in enumerate(_process_line(subscription, primary_vendor_key,secondary_vendor_key))
             }
         else:
-            yield _process_line(subscription, primary_vendor_key)
+            yield _process_line(subscription, primary_vendor_key,secondary_vendor_key)
         progress += 1
         progress_callback(progress, total)
 
     for subscription in term_subscriptions:
-        primary_vendor_key = get_primary_key(
-            subscription.get('params', []),
-            subscription['product']['id'],
-            client,
-            products_primary_keys,
-        )
-        if renderer_type == 'json':
-            yield {
-                HEADERS[idx].replace(' ', '_').lower(): value
-                for idx, value in enumerate(_process_line(subscription, primary_vendor_key))
-            }
-        else:
-            yield _process_line(subscription, primary_vendor_key)
+        primary_vendor_key =  get_sub_parameter(subscription,"SubscriptionID")
+        secondary_vendor_key =  get_sub_parameter(subscription,"SubscriptionID_Fractalia")
+        if primary_vendor_key <> secondary_vendor_key:
+            if renderer_type == 'json':
+                yield {
+                    HEADERS[idx].replace(' ', '_').lower(): value
+                    for idx, value in enumerate(_process_line(subscription, primary_vendor_key,secondary_vendor_key))
+                }
+            else:
+                yield _process_line(subscription, primary_vendor_key,secondary_vendor_key)
         progress += 1
         progress_callback(progress, total)
 
@@ -152,7 +145,7 @@ def get_primary_key(parameters, product_id, client, products_primary_keys):
     return '-'
 
 
-def _process_line(subscription, primary_vendor_key):
+def _process_line(subscription, primary_vendor_key,secondary_vendor_key):
     return (
         subscription.get('id'),
         subscription.get('external_id', '-'),
@@ -175,8 +168,8 @@ def _process_line(subscription, primary_vendor_key):
         subscription["tiers"]["customer"]["contact_info"]["contact"]["first_name"],
         subscription["tiers"]["customer"]["tax_id"],
         #subscription["params"]["subscriptionID"].value,
-        get_sub_parameter(subscription,"subscriptionID"),
-        get_sub_parameter(subscription,"SubscriptionID_Fractalia"),
+        primary_vendor_key,
+        secondary_vendor_key,
         get_value(subscription.get('tiers', ''), 'tier2', 'name'),
         get_value(subscription.get('tiers', ''), 'tier2', 'external_id'),
         get_value(subscription['connection'], 'provider', 'id'),
