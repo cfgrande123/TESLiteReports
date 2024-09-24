@@ -52,6 +52,8 @@ def generate(
     
 def _get_subscriptions(client, parameters):
     query = R()
+    if parameters.get('date') and parameters['date']['after'] != '':       
+        query &= R().events.created.at.le(parameters['date']['before'])
     query &= R().product.id.eq("PRD-825-728-174")
     if parameters.get('mkp') and parameters['mkp']['all'] is False:
         query &= R().marketplace.id.oneof(parameters['mkp']['choices'])
