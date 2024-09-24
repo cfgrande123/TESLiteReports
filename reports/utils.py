@@ -61,4 +61,4 @@ def get_sub_parameter(subscription, param_id):
     for param in subscription["params"]:
         if param["id"] == param_id or param["name"] == param_id:
             return param.get('value', '-')
-    return "-"
+    return "Not found"
