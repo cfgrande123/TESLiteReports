@@ -62,6 +62,15 @@ def _get_subscriptions(client, parameters):
     query &= R().connection.type.eq('production')
     return client.ns('subscriptions').assets.filter(query)
 
+def calculate_period(delta, uom):
+    if delta == 1:
+        if uom == 'monthly':
+            return 'Monthly'
+        return 'Yearly'
+    else:
+        if uom == 'monthly':
+            return f'{int(delta)} Months'
+        return f'{int(delta)} Years'
 
 
 def get_anniversary_day(subscription_billing):
