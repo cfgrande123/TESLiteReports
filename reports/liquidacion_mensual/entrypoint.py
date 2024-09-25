@@ -7,7 +7,7 @@
 from connect.client import R
 
 from ..utils import convert_to_datetime, get_sub_parameter, get_value
-from datetime import datetime
+from datetime import datetime, timedelta
 
 HEADERS = (
     'Subscription ID', 'Subscription External ID', 'Vendor primary key',
@@ -83,7 +83,7 @@ def _get_terminated_subscriptions(client, parameters):
     query = R()
     today = datetime.utcnow()
     month, year = (today.month, today.year) 
-    end_day_of_prev_month = today.replace(day=1, month=month, year=year)-1
+    end_day_of_prev_month = today.replace(day=1, month=month, year=year)-timedelta(days=1)
     query &= R().events.updated.at.ge(end_day_of_prev_month)
     query &= R().product.id.eq("PRD-825-728-174")
     if parameters.get('mkp') and parameters['mkp']['all'] is False:
