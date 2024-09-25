@@ -7,7 +7,8 @@
 from connect.client import R
 
 from ..utils import convert_to_datetime, get_sub_parameter, get_value
-    
+from datetime import datetime
+
 HEADERS = (
     'Subscription ID', 'Subscription External ID', 'Vendor primary key',
     'Subscription Type', 'Creation date', 'Updated date', 'Status', 'Billing Period',
