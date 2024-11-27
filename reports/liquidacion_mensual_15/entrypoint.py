@@ -66,9 +66,9 @@ def generate(
 
 def _get_active_subscriptions(client, parameters):
     today = datetime.utcnow()
-    first_day_of_this_month = today.replace(day=1, month=today.month, year=today.year)
+    day_16_of_this_month = today.replace(day=16, month=today.month, year=today.year)
     query = R()
-    query &= R().events.updated.at.lt(first_day_of_this_month)
+    query &= R().events.updated.at.lt(day_16_of_this_month)
     query &= R().product.id.eq("PRD-825-728-174")
     if parameters.get('mkp') and parameters['mkp']['all'] is False:
         query &= R().marketplace.id.oneof(parameters['mkp']['choices'])
@@ -82,8 +82,8 @@ def _get_terminated_subscriptions(client, parameters):
     query = R()
     today = datetime.utcnow()
     month, year = (today.month -1, today.year) if today.month != 1 else (12, today.year -1)
-    first_day_of_prev_month = today.replace(day=1, month=month, year=year)
-    query &= R().events.updated.at.ge(first_day_of_prev_month)
+    day_16_of_prev_month = today.replace(day=16, month=month, year=year)
+    query &= R().events.updated.at.ge(day_16_of_prev_month)
     query &= R().product.id.eq("PRD-825-728-174")
     if parameters.get('mkp') and parameters['mkp']['all'] is False:
         query &= R().marketplace.id.oneof(parameters['mkp']['choices'])
