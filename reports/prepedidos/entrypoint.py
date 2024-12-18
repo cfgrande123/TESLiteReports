@@ -15,7 +15,7 @@ HEADERS = (
     'Customer ID', 'Customer Name', 'Customer External ID',
     'Tax ID', 'KD',	'Bitdefender ID', 'Fractalia ID', 'Tier 1 Name', 'Tier 1 External ID',
     'Vendor Account ID', 'Vendor Account Name',
-    'Product ID', 'Product Name',
+    'Product ID', 'Product Name', 'Customer Email',
 )
 
 def generate(
@@ -139,4 +139,5 @@ def _process_line(subscription, primary_vendor_key,secondary_vendor_key):
         get_value(subscription['connection'], 'vendor', 'name'),
         get_value(subscription, 'product', 'id'),
         get_value(subscription, 'product', 'name'),
+        subscription["tiers"]["customer"]["contact_info"]["contact"]["email"],
     )
