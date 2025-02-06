@@ -40,13 +40,15 @@ def generate(
     for subscription in act_subscriptions:
         primary_vendor_key = get_sub_parameter(subscription,"subscriptionID")
         secondary_vendor_key =  get_sub_parameter(subscription,"SubscriptionID_Fractalia")
+        purchase_request=_get_purchase_request(client, subscription.id)
+        rfs_date=purchase_request['events']['updated']['at'];
         if renderer_type == 'json':
             yield {
                 HEADERS[idx].replace(' ', '_').lower(): value
-                for idx, value in enumerate(_process_line(subscription, primary_vendor_key,secondary_vendor_key))
+                for idx, value in enumerate(_process_line(subscription, primary_vendor_key,secondary_vendor_key,rfs_date))
             }
         else:
-            yield _process_line(subscription, primary_vendor_key,secondary_vendor_key)
+            yield _process_line(subscription, primary_vendor_key,secondary_vendor_key,rfs_date)
         progress += 1
         progress_callback(progress, total)
 
@@ -57,10 +59,10 @@ def generate(
             if renderer_type == 'json':
                 yield {
                     HEADERS[idx].replace(' ', '_').lower(): value
-                    for idx, value in enumerate(_process_line(subscription, primary_vendor_key,secondary_vendor_key))
+                    for idx, value in enumerate(_process_line(subscription, primary_vendor_key,secondary_vendor_key,subscription['events']['updated']['at']))
                 }
             else:
-                yield _process_line(subscription, primary_vendor_key,secondary_vendor_key)
+                yield _process_line(subscription, primary_vendor_key,secondary_vendor_key,subscription['events']['updated']['at'])
         progress += 1
         progress_callback(progress, total)
 
@@ -78,12 +80,18 @@ def _get_active_subscriptions(client, parameters):
     query &= R().connection.type.eq('production')
     return client.ns('subscriptions').assets.filter(query)
 
+def _get_purchase_request(client, asset_id):
+    query = R()
+    query &= R().type.eq('purchase')
+    query &= R().asset.id.eq(asset_id)
+    return client.ns('requests').requests.filter(query)
+
 def _get_terminated_subscriptions(client, parameters):
     query = R()
-    today = datetime.utcnow()
-    month, year = (today.month -1, today.year) if today.month != 1 else (12, today.year -1)
-    day_16_of_prev_month = today.replace(day=16, month=month, year=year,minute=0, second=0, microsecond=0)
-    query &= R().events.updated.at.ge(day_16_of_prev_month)
+    # today = datetime.utcnow()
+    # month, year = (today.month -1, today.year) if today.month != 1 else (12, today.year -1)
+    # day_16_of_prev_month = today.replace(day=16, month=month, year=year,minute=0, second=0, microsecond=0)
+    # query &= R().events.updated.at.ge(day_16_of_prev_month)
     query &= R().product.id.eq("PRD-825-728-174")
     if parameters.get('mkp') and parameters['mkp']['all'] is False:
         query &= R().marketplace.id.oneof(parameters['mkp']['choices'])
@@ -140,14 +148,14 @@ def get_primary_key(parameters, product_id, client, products_primary_keys):
     return '-'
 
 
-def _process_line(subscription, primary_vendor_key,secondary_vendor_key):
+def _process_line(subscription, primary_vendor_key,secondary_vendor_key,status_changed_date):
     return (
         subscription.get('id'),
         subscription.get('external_id', '-'),
         primary_vendor_key,
         get_value(subscription, 'connection', 'type'),
         convert_to_datetime(subscription['events']['created']['at']),
-        convert_to_datetime(subscription['events']['updated']['at']),
+        convert_to_datetime(status_changed_date),
         subscription.get('status'),
         calculate_period(
             subscription['billing']['period']['delta'],
