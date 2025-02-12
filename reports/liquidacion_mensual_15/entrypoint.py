@@ -40,7 +40,7 @@ def generate(
     for subscription in act_subscriptions:
         primary_vendor_key = get_sub_parameter(subscription,"subscriptionID")
         secondary_vendor_key =  get_sub_parameter(subscription,"SubscriptionID_Fractalia")
-        purchase_request=_get_purchase_request(client, subscription.id)
+        purchase_request=_get_purchase_request(client, subscription.get('id'))
         rfs_date=purchase_request['events']['updated']['at'];
         if renderer_type == 'json':
             yield {
@@ -55,11 +55,13 @@ def generate(
     for subscription in term_subscriptions:
         primary_vendor_key =  get_sub_parameter(subscription,"subscriptionID")
         secondary_vendor_key =  get_sub_parameter(subscription,"SubscriptionID_Fractalia")
+        purchase_request=_get_purchase_request(client, subscription.get('id'))
+        rfs_date=purchase_request['events']['updated']['at'];
         if primary_vendor_key != secondary_vendor_key:
             if renderer_type == 'json':
                 yield {
                     HEADERS[idx].replace(' ', '_').lower(): value
-                    for idx, value in enumerate(_process_line(subscription, primary_vendor_key,secondary_vendor_key,subscription['events']['updated']['at']))
+                    for idx, value in enumerate(_process_line(subscription, primary_vendor_key,secondary_vendor_key,rfs_date))
                 }
             else:
                 yield _process_line(subscription, primary_vendor_key,secondary_vendor_key,subscription['events']['updated']['at'])
