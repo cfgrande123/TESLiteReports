@@ -46,7 +46,7 @@ def generate(
                 for idx, value in enumerate(_process_line(subscription, primary_vendor_key,secondary_vendor_key))
             }
         else:
-            yield _process_line(subscription, primary_vendor_key,secondary_vendor_key,rfs_date)
+            yield _process_line(subscription, primary_vendor_key,secondary_vendor_key)
         progress += 1
         progress_callback(progress, total)
 
@@ -60,7 +60,7 @@ def generate(
                     for idx, value in enumerate(_process_line(subscription, primary_vendor_key,secondary_vendor_key))
                 }
             else:
-                yield _process_line(subscription, primary_vendor_key,secondary_vendor_key,subscription['events']['updated']['at'])
+                yield _process_line(subscription, primary_vendor_key,secondary_vendor_key)
         progress += 1
         progress_callback(progress, total)
 
