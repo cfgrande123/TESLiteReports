@@ -80,7 +80,8 @@ def _get_active_subscriptions(client, parameters):
 
 def _get_rfs_date(subscription):
     for request in subscription['requests']
-      if get_basic_value(request, 'type')=='purchase' return get_basic_value(request,'updated')
+      if get_basic_value(request, 'type')=='purchase' 
+         return get_basic_value(request,'updated')
 
 def _get_terminated_subscriptions(client, parameters):
     query = R()
