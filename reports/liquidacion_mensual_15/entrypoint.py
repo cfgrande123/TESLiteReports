@@ -6,7 +6,7 @@
 
 from connect.client import R
 
-from ..utils import convert_to_datetime, get_sub_parameter, get_value
+from ..utils import convert_to_datetime, get_sub_parameter, get_value,  get_basic_value
 from datetime import datetime, timedelta
 
 HEADERS = (
@@ -40,12 +40,10 @@ def generate(
     for subscription in act_subscriptions:
         primary_vendor_key = get_sub_parameter(subscription,"subscriptionID")
         secondary_vendor_key =  get_sub_parameter(subscription,"SubscriptionID_Fractalia")
-        purchase_request=_get_purchase_request(client, subscription.get('id'))
-        rfs_date=purchase_request['updated']
         if renderer_type == 'json':
             yield {
                 HEADERS[idx].replace(' ', '_').lower(): value
-                for idx, value in enumerate(_process_line(subscription, primary_vendor_key,secondary_vendor_key,rfs_date))
+                for idx, value in enumerate(_process_line(subscription, primary_vendor_key,secondary_vendor_key))
             }
         else:
             yield _process_line(subscription, primary_vendor_key,secondary_vendor_key,rfs_date)
@@ -55,13 +53,11 @@ def generate(
     for subscription in term_subscriptions:
         primary_vendor_key =  get_sub_parameter(subscription,"subscriptionID")
         secondary_vendor_key =  get_sub_parameter(subscription,"SubscriptionID_Fractalia")
-        purchase_request=_get_purchase_request(client, subscription.get('id'))
-        rfs_date=purchase_request['updated']
         if primary_vendor_key != secondary_vendor_key:
             if renderer_type == 'json':
                 yield {
                     HEADERS[idx].replace(' ', '_').lower(): value
-                    for idx, value in enumerate(_process_line(subscription, primary_vendor_key,secondary_vendor_key,rfs_date))
+                    for idx, value in enumerate(_process_line(subscription, primary_vendor_key,secondary_vendor_key))
                 }
             else:
                 yield _process_line(subscription, primary_vendor_key,secondary_vendor_key,subscription['events']['updated']['at'])
@@ -150,14 +146,17 @@ def get_primary_key(parameters, product_id, client, products_primary_keys):
     return '-'
 
 
-def _process_line(subscription, primary_vendor_key,secondary_vendor_key,status_changed_date):
+def _process_line(subscription, primary_vendor_key,secondary_vendor_key):
+    purchase_request=_get_purchase_request(client, subscription.get('id'))
+    rfs_date=get_basic_value(purchase_request,'updated')
+        
     return (
         subscription.get('id'),
         subscription.get('external_id', '-'),
         primary_vendor_key,
         get_value(subscription, 'connection', 'type'),
         convert_to_datetime(subscription['events']['created']['at']),
-        convert_to_datetime(status_changed_date),
+        convert_to_datetime(rfs_date),
         subscription.get('status'),
         calculate_period(
             subscription['billing']['period']['delta'],
