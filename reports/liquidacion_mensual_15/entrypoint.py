@@ -78,11 +78,9 @@ def _get_active_subscriptions(client, parameters):
     query &= R().connection.type.eq('production')
     return client.ns('subscriptions').assets.filter(query)
 
-def _get_purchase_request(client, asset_id):
-    query = R()
-    query &= R().type.eq('purchase')
-    query &= R().asset.id.eq(asset_id)
-    return client.ns('requests').requests.filter(query)
+def _get_rfs_date(subscription):
+    for request in subscription['requests']
+      if get_basic_value(request, 'type')=='purchase' return get_basic_value(request,'updated')
 
 def _get_terminated_subscriptions(client, parameters):
     query = R()
@@ -147,8 +145,6 @@ def get_primary_key(parameters, product_id, client, products_primary_keys):
 
 
 def _process_line(subscription, primary_vendor_key,secondary_vendor_key):
-    purchase_request=_get_purchase_request(client, subscription.get('id'))
-    rfs_date=get_basic_value(purchase_request,'updated')
         
     return (
         subscription.get('id'),
@@ -156,7 +152,7 @@ def _process_line(subscription, primary_vendor_key,secondary_vendor_key):
         primary_vendor_key,
         get_value(subscription, 'connection', 'type'),
         convert_to_datetime(subscription['events']['created']['at']),
-        convert_to_datetime(rfs_date),
+        convert_to_datetime(_get_rfs_date(subscription)),
         subscription.get('status'),
         calculate_period(
             subscription['billing']['period']['delta'],
