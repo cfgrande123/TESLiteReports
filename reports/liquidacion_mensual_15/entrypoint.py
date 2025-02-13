@@ -6,7 +6,7 @@
 
 from connect.client import R
 
-from ..utils import convert_to_datetime, get_sub_parameter, get_value,  get_basic_value
+from ..utils import convert_to_datetime, get_sub_parameter, get_req_parameter, get_value,  get_basic_value
 from datetime import datetime, timedelta
 
 HEADERS = (
@@ -19,7 +19,7 @@ HEADERS = (
     'Product ID', 'Product Name',
 )
 
-def generate(
+def generate_subs(
     client=None,
     parameters=None,
     progress_callback=None,
@@ -66,6 +66,37 @@ def generate(
         progress += 1
         progress_callback(progress, total)
 
+def generate(
+    client=None,
+    parameters=None,
+    progress_callback=None,
+    renderer_type=None,
+    extra_context_callback=None,
+):
+    products_primary_keys = {}
+    orders = _get_active_requests(client, parameters)
+    total = orders.count()
+    progress = 0
+    if renderer_type == 'csv':
+        yield HEADERS
+        progress += 1
+        total += 1
+        progress_callback(progress, total)
+
+    for order in orders:
+        primary_vendor_key = get_req_parameter(order,"subscriptionID")
+        secondary_vendor_key =  get_req_parameter(order,"SubscriptionID_Fractalia")
+        if renderer_type == 'json':
+            yield {
+                HEADERS[idx].replace(' ', '_').lower(): value
+                for idx, value in enumerate(_process_line(order, primary_vendor_key,secondary_vendor_key))
+            }
+        else:
+            yield _process_line(order, primary_vendor_key,secondary_vendor_key)
+        progress += 1
+        progress_callback(progress, total)
+
+
 def _get_purchase_request(client, asset_id):
     query = R()
     #query &= R().type.eq('purchase')
@@ -85,6 +116,20 @@ def _get_active_subscriptions(client, parameters):
     query &= R().status.oneof(['active'])
     query &= R().connection.type.eq('production')
     return client.ns('subscriptions').assets.filter(query)
+    
+def _get_active_requests(client, parameters):
+    today = datetime.utcnow()
+    day_16_of_this_month = today.replace(day=16, month=today.month, year=today.year,minute=0, second=0, microsecond=0)
+    query = R()
+    query &= query &= R().updated.lt(day_16_of_this_month)
+    query &= R().product_id.eq("PRD-825-728-174")
+    if parameters.get('mkp') and parameters['mkp']['all'] is False:
+        query &= R().marketplace.id.oneof(parameters['mkp']['choices'])
+    query &= R().asset.status.oneof(['active'])
+    query &= R().asset.connection.type.eq('production')
+    query &= R().type.eq('purchase')
+    return client.ns('orders').requests.filter(query)
+
 
 def _get_rfs_date(subscription):
     for request in subscription['requests']
@@ -185,4 +230,36 @@ def _process_line(subscription, primary_vendor_key,secondary_vendor_key):
         get_value(subscription['connection'], 'vendor', 'name'),
         get_value(subscription, 'product', 'id'),
         get_value(subscription, 'product', 'name'),
+    )
+
+
+def _process_line_req(order, primary_vendor_key,secondary_vendor_key):
+        
+    return (
+        order.get('asset','id'),
+        order.get('asset','external_id'),
+        primary_vendor_key,
+        order['asset']['connection']['type'],
+        convert_to_datetime(order['created']),
+        convert_to_datetime(order['updated']),
+        order.get('asset','status'),
+        order['asset']['events']['created']['at'],
+        '-',
+        '-',
+        order['asset']['contract']['id'] if 'contract' in order['asset'] else '-',
+        order['asset']['contract']['name'] if 'contract' in order['asset'] else '-',
+        order['asset']['tiers']['customer']['id'],
+        order['asset']['tiers']['customer']['name'],
+        order['asset']['tiers']['customer']['external_id'],
+        order['asset']['tiers']['customer']['tax_id'],
+        order['asset']["tiers"]["customer"]["contact_info"]["contact"]["first_name"],
+        primary_vendor_key,
+        secondary_vendor_key,
+        order['asset']['tiers']['tier1']['name'],
+        order['asset']['tiers']['tier1']['external_id'],
+        order['asset']['connection']['vendor']['id'],
+        order['asset']['connection']['vendor']['name'],
+        order['asset']['product']['id'],
+        order['asset']['product']['name'],
+        
     )
