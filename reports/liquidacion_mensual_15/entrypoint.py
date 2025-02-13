@@ -89,10 +89,10 @@ def generate(
         if renderer_type == 'json':
             yield {
                 HEADERS[idx].replace(' ', '_').lower(): value
-                for idx, value in enumerate(_process_line(order, primary_vendor_key,secondary_vendor_key))
+                for idx, value in enumerate(_process_line_req(order, primary_vendor_key,secondary_vendor_key))
             }
         else:
-            yield _process_line(order, primary_vendor_key,secondary_vendor_key)
+            yield _process_line_req(order, primary_vendor_key,secondary_vendor_key)
         progress += 1
         progress_callback(progress, total)
 
