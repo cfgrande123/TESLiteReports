@@ -62,3 +62,10 @@ def get_sub_parameter(subscription, param_id):
         if param["id"] == param_id or param["name"] == param_id:
             return param.get('value', '-')
     return "Not found"
+
+
+def get_req_parameter(request, param_id):
+    for param in request["asset"]["params"]:
+        if param["id"] == param_id or param["name"] == param_id:
+            return param.get('value', '-')
+    return "Not found"
