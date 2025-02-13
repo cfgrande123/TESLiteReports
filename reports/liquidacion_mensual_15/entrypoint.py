@@ -153,7 +153,8 @@ def _process_line(subscription, primary_vendor_key,secondary_vendor_key):
         primary_vendor_key,
         get_value(subscription, 'connection', 'type'),
         convert_to_datetime(subscription['events']['created']['at']),
-        convert_to_datetime(_get_rfs_date(subscription)),
+        #convert_to_datetime(_get_rfs_date(subscription)),
+        subscription["requests"][0]["type"],
         subscription.get('status'),
         calculate_period(
             subscription['billing']['period']['delta'],
