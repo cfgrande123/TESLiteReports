@@ -41,7 +41,7 @@ def generate(
         primary_vendor_key = get_sub_parameter(subscription,"subscriptionID")
         secondary_vendor_key =  get_sub_parameter(subscription,"SubscriptionID_Fractalia")
         purchase_request=_get_purchase_request(client,subscription.get('id'))
-        secondary_vendor_key = get_basic_value(purchase_request[0],'type'])
+        secondary_vendor_key = get_basic_value(purchase_request[0],'type')
         if renderer_type == 'json':
             yield {
                 HEADERS[idx].replace(' ', '_').lower(): value
