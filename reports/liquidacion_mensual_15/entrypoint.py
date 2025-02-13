@@ -40,6 +40,8 @@ def generate(
     for subscription in act_subscriptions:
         primary_vendor_key = get_sub_parameter(subscription,"subscriptionID")
         secondary_vendor_key =  get_sub_parameter(subscription,"SubscriptionID_Fractalia")
+        purchase_request=_get_purchase_request(client,subscription.get('id'))
+        secondary_vendor_key = get_basic_value(purchase_request[0],'type'])
         if renderer_type == 'json':
             yield {
                 HEADERS[idx].replace(' ', '_').lower(): value
@@ -63,6 +65,12 @@ def generate(
                 yield _process_line(subscription, primary_vendor_key,secondary_vendor_key)
         progress += 1
         progress_callback(progress, total)
+
+def _get_purchase_request(client, asset_id):
+    query = R()
+    #query &= R().type.eq('purchase')
+    query &= R().asset.id.eq(asset_id)
+    return client.ns('requests').requests.filter(query)
 
 def _get_active_subscriptions(client, parameters):
     today = datetime.utcnow()
