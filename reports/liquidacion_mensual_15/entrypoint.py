@@ -47,8 +47,6 @@ def generate(
 
 
 def _get_requests(client, parameters):
-    all_status = ['tiers_setup', 'inquiring', 'pending', 'approved', 'failed']
-
     query = R()
     today = datetime.utcnow()
     day_16_of_this_month = today.replace(day=16, month=today.month, year=today.year,minute=0, second=0, microsecond=0)
@@ -57,9 +55,9 @@ def _get_requests(client, parameters):
     query &= R().asset.product.id.eq("PRD-825-728-174")
     #if parameters.get('mkp') and parameters['mkp']['all'] is False:
     #    query &= R().asset.marketplace.id.oneof(parameters['mkp']['choices'])
-    query &= R().asset.status.eq('active')
-    query &= R().asset.connection.type.eq('production')
-    query &= R().type.eq ('purchase')
+    query &= R().status.eq('approved')
+    #query &= R().asset.connection.type.eq('production')
+    #query &= R().type.eq ('purchase')
 
     return client.requests.filter(query).select(
         '-asset.items',
