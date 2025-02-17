@@ -47,11 +47,11 @@ def _get_requests(client, parameters):
     query = R()
     query &= R().updated.lt(day_16_of_this_month)
     query &= R().asset.product.id.eq("PRD-825-728-174")
-    if parameters.get('mkp') and parameters['mkp']['all'] is False:
-        query &= R().asset.marketplace.id.oneof(parameters['mkp']['choices'])
-    query &= R().asset.status.oneof(['active'])
+    #if parameters.get('mkp') and parameters['mkp']['all'] is False:
+    #    query &= R().asset.marketplace.id.oneof(parameters['mkp']['choices'])
+    query &= R().asset.status.eq('active')
     query &= R().asset.connection.type.eq('production')
-    query &= R().type.eq ('purchase'])
+    query &= R().type.eq ('purchase')
 
     return client.requests.filter(query).select(
         '-asset.items',
