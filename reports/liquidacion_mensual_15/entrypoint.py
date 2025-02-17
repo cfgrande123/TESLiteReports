@@ -56,8 +56,8 @@ def _get_requests(client, parameters):
     #if parameters.get('mkp') and parameters['mkp']['all'] is False:
     #    query &= R().asset.marketplace.id.oneof(parameters['mkp']['choices'])
     query &= R().status.eq('approved')
-    #query &= R().asset.connection.type.eq('production')
-    #query &= R().type.eq ('purchase')
+    query &= R().asset__connection__type.eq('production')
+    #query &= R().type.eq('purchase')
 
     return client.requests.filter(query).select(
         '-asset.items',
@@ -89,8 +89,8 @@ def _process_line(request, connection):
         get_value(request['asset']['tiers'], 'customer', 'id'),
         get_value(request['asset']['tiers'], 'customer', 'name'),
         get_value(request['asset']['tiers'], 'customer', 'external_id'),
-        'Tax ID',
-        'KD',	
+        get_value(request['asset']['tiers'],'customer','tax_id'),
+        get_value(request['asset']['tiers']['customer']['contact_info'],'contact','first_name'),
         'Bitdefender ID', 
         'Fractalia ID', 
         get_value(request['asset']['tiers'], 'tier1', 'name'),
