@@ -1,15 +1,105 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2023, CloudBlue
+# Copyright (c) 2025, TCCT
 # All rights reserved.
 #
 
 from connect.client import R
 
-from ..utils import convert_to_datetime, get_sub_parameter, get_value
+from ..utils import convert_to_datetime, get_sub_parameter, get_basic_value, get_value, today_str
 from datetime import datetime, timedelta
 
-HEADERS = (
+def generate(
+    client=None,
+    parameters=None,
+    progress_callback=None,
+    renderer_type=None,
+    extra_context_callback=None,
+):
+    requests = _get_requests(client, parameters)
+    progress = 0
+    total = requests.count()
+    if renderer_type == 'csv':
+        yield HEADERS
+        progress += 1
+        total += 1
+        progress_callback(progress, total)
+
+    for request in requests:
+        connection = request['asset']['connection']
+        if renderer_type == 'json':
+            yield {
+                HEADERS[idx].replace(' ', '_').lower(): value
+                for idx, value in enumerate(_process_line(request, connection))
+            }
+        else:
+            yield _process_line(request, connection)
+        progress += 1
+        progress_callback(progress, total)
+
+
+def _get_requests(client, parameters):
+    all_status = ['tiers_setup', 'inquiring', 'pending', 'approved', 'failed']
+
+    query = R()
+    today = datetime.utcnow()
+    day_16_of_this_month = today.replace(day=16, month=today.month, year=today.year,minute=0, second=0, microsecond=0)
+    query = R()
+    query &= R().updated.lt(day_16_of_this_month)
+    query &= R().product.id.eq("PRD-825-728-174")
+    if parameters.get('mkp') and parameters['mkp']['all'] is False:
+        query &= R().marketplace.id.oneof(parameters['mkp']['choices'])
+    query &= R().asset.status.oneof(['active'])
+    query &= R().asset.connection.type.eq('production')
+    query &= R().type.eq ('purchase'])
+
+    return client.requests.filter(query).select(
+        '-asset.items',
+        '-asset.params',
+        '-asset.configuration',
+        '-activation_key',
+        '-template',
+    )
+
+
+def _process_line(request, connection):
+    return (
+        get_basic_value(request, 'id'),
+        get_basic_value(request, 'type'),
+        get_basic_value(request, 'status'),
+        convert_to_datetime(
+            get_basic_value(request, 'created'),
+        ),
+        convert_to_datetime(
+            get_basic_value(request, 'updated'),
+        ),
+        today_str(),
+        get_value(request['asset']['tiers'], 'customer', 'id'),
+        get_value(request['asset']['tiers'], 'customer', 'name'),
+        get_value(request['asset']['tiers'], 'customer', 'external_id'),
+        get_value(request['asset']['tiers'], 'tier1', 'id'),
+        get_value(request['asset']['tiers'], 'tier1', 'name'),
+        get_value(request['asset']['tiers'], 'tier1', 'external_id'),
+        get_value(request['asset']['tiers'], 'tier2', 'id'),
+        get_value(request['asset']['tiers'], 'tier2', 'name'),
+        get_value(request['asset']['tiers'], 'tier2', 'external_id'),
+        get_value(request['asset'], 'marketplace', 'id'),
+        get_value(request['asset'], 'marketplace', 'name'),
+        get_value(request['asset']['connection'], 'provider', 'id'),
+        get_value(request['asset']['connection'], 'provider', 'name'),
+        get_value(request['asset']['connection'], 'vendor', 'id'),
+        get_value(request['asset']['connection'], 'vendor', 'name'),
+        get_value(request['asset'], 'product', 'id'),
+        get_value(request['asset'], 'product', 'name'),
+        get_value(request, 'asset', 'id'),
+        get_value(request, 'asset', 'external_id'),
+        get_value(request['asset'], 'connection', 'type'),
+        get_value(connection, 'hub', 'id') if 'hub' in connection else '',
+        get_value(connection, 'hub', 'name') if 'hub' in connection else '',
+        get_value(request, 'asset', 'status'),
+    )
+
+"""HEADERS = (
     'Subscription ID', 'Subscription External ID', 'Vendor primary key',
     'Subscription Type', 'Creation date', 'Updated date', 'Status', 'Billing Period',
     'Anniversary Day', 'Anniversary Month', 'Contract ID', 'Contract Name',
@@ -182,4 +272,4 @@ def _process_line(subscription, primary_vendor_key,secondary_vendor_key):
         get_value(subscription, 'product', 'id'),
         get_value(subscription, 'product', 'name'),
     )
-
+"""
