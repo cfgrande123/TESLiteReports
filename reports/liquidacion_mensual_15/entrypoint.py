@@ -97,7 +97,7 @@ def _get_terminated_subscriptions(client, parameters):
 def _get_purchase_request_approval_date (client, asset_id):
     query = R()
     query &= R().asset.id.eq(asset_id)
-    query &= R().type.eq("purchase")
+    # query &= R().type.eq("purchase")
     requests=client.requests.filter(query)
     if requests.count()>0: 
         return requests[0].updated
