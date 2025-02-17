@@ -75,7 +75,7 @@ def _process_line(request, connection):
         get_value(request, 'asset', 'id'),
         get_value(request, 'asset', 'external_id'),
         "-",
-        get_value(request['asset']['connection'],type), 
+        get_value(request['asset']['connection'],'type'), 
         convert_to_datetime(
             get_basic_value(request, 'created'),
         ), 
