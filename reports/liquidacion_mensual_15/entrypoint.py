@@ -102,7 +102,7 @@ def _get_purchase_request_approval_date (client, asset_id):
     if requests.count()>0: 
         return requests[0].updated
     else:
-        return 0
+        return ""
 
 def calculate_period(delta, uom):
     if delta == 1:
