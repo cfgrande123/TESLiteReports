@@ -46,9 +46,9 @@ def _get_requests(client, parameters):
     day_16_of_this_month = today.replace(day=16, month=today.month, year=today.year,minute=0, second=0, microsecond=0)
     query = R()
     query &= R().updated.lt(day_16_of_this_month)
-    query &= R().product.id.eq("PRD-825-728-174")
+    query &= R().asset.product.id.eq("PRD-825-728-174")
     if parameters.get('mkp') and parameters['mkp']['all'] is False:
-        query &= R().marketplace.id.oneof(parameters['mkp']['choices'])
+        query &= R().asset.marketplace.id.oneof(parameters['mkp']['choices'])
     query &= R().asset.status.oneof(['active'])
     query &= R().asset.connection.type.eq('production')
     query &= R().type.eq ('purchase'])
