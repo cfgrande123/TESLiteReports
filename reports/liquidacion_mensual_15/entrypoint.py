@@ -40,7 +40,7 @@ def generate(
     for subscription in act_subscriptions:
         primary_vendor_key = get_sub_parameter(subscription,"subscriptionID")
 #        secondary_vendor_key =  get_sub_parameter(subscription,"SubscriptionID_Fractalia")
-        secondary_vendor_key=convert_to_datetime(_get_purchase_request_approval_date (client,subscription.get('id')))
+        secondary_vendor_key=_get_purchase_request_approval_date (client,subscription.get('id'))
         if renderer_type == 'json':
             yield {
                 HEADERS[idx].replace(' ', '_').lower(): value
@@ -102,7 +102,7 @@ def _get_purchase_request_approval_date (client, asset_id):
     if requests.count()>0: 
         return requests[0].updated
     else:
-        return ""
+        return asset_id
 
 def calculate_period(delta, uom):
     if delta == 1:
