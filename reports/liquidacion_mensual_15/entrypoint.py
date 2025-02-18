@@ -15,7 +15,7 @@ HEADERS = (
     'Customer ID', 'Customer Name', 'Customer External ID',
     'Tax ID', 'KD',	'Bitdefender ID', 'Fractalia ID', 'Tier 1 Name', 'Tier 1 External ID',
     'Vendor Account ID', 'Vendor Account Name',
-    'Product ID', 'Product Name',
+    'Product ID', 'Product Name', 'Cancellation Date',
 )
 def generate(
     client=None,
@@ -84,8 +84,8 @@ def _process_line(request, connection):
         'monthly',
         '-', 
         '-',
-        '', 
-        '-',
+        get_value(request['asset'], 'contract', 'id'),
+        get_value(request['asset'], 'contract', 'name'),
         get_value(request['asset']['tiers'], 'customer', 'id'),
         get_value(request['asset']['tiers'], 'customer', 'name'),
         get_value(request['asset']['tiers'], 'customer', 'external_id'),
@@ -99,6 +99,7 @@ def _process_line(request, connection):
         get_value(request['asset']['tiers'], 'tier1', 'external_id'),
         get_value(request['asset'], 'product', 'id'),
         get_value(request['asset'], 'product', 'name'),
+        get_value(request['asset']['events'], 'updated', 'at')) if get_value(request, 'asset', 'status')=='terminated' else '-'
         
     )
 
