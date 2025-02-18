@@ -59,7 +59,7 @@ def _get_requests(client, parameters):
     query &= R().status.eq('approved')
     query &= R().asset__connection__type.eq('production')
     query &= R().type.eq('purchase')
-
+    
     return client.requests.filter(query).select(
         '-asset.items',
         '-asset.configuration',
@@ -101,7 +101,7 @@ def _process_line(request, connection):
         get_value(request['asset'], 'product', 'name'),
         convert_to_datetime( 
             get_value(request['asset']['events'], 'updated', 'at')
-        ) if get_value(request, 'asset', 'status')=='terminated' 
+        ) if get_value(request, 'asset', 'status')!='active'  
         else '-',
         
     )
