@@ -92,8 +92,8 @@ def _process_line(request, connection):
         get_value(request['asset']['tiers'], 'customer', 'external_id'),
         get_value(request['asset']['tiers'],'customer','tax_id'),
         get_value(request['asset']['tiers']['customer']['contact_info'],'contact','first_name'),
-        get_req_parameter(request,"subscriptionID")
-        get_req_parameter(request,"SubscriptionID_Fractalia")
+        get_req_parameter(request,"subscriptionID"),
+        get_req_parameter(request,"SubscriptionID_Fractalia"),
         get_value(request['asset']['tiers'], 'tier1', 'name'),
         get_value(request['asset']['tiers'], 'tier1', 'external_id'),
         get_value(request['asset']['tiers'], 'tier1', 'name'),
