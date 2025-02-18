@@ -35,6 +35,7 @@ def generate(
 
     for request in requests:
         connection = request['asset']['connection']
+        
         if renderer_type == 'json':
             yield {
                 HEADERS[idx].replace(' ', '_').lower(): value
@@ -49,7 +50,7 @@ def generate(
 def _get_requests(client, parameters):
     query = R()
     today = datetime.utcnow()
-    day_16_of_this_month = today.replace(day=16, month=today.month, year=today.year,minute=0, second=0, microsecond=0)
+    day_16_of_this_month = today.replace(day=16, month=today.month, year=today.year, hour=0, minute=0, second=0)
     query = R()
     query &= R().updated.lt(day_16_of_this_month)
     query &= R().asset.product.id.eq("PRD-825-728-174")
@@ -57,7 +58,7 @@ def _get_requests(client, parameters):
     #    query &= R().asset.marketplace.id.oneof(parameters['mkp']['choices'])
     query &= R().status.eq('approved')
     query &= R().asset__connection__type.eq('production')
-    #query &= R().type.eq('purchase')
+    query &= R().type.eq('purchase')
 
     return client.requests.filter(query).select(
         '-asset.items',
@@ -72,7 +73,7 @@ def _process_line(request, connection):
     return (
         get_value(request, 'asset', 'id'),
         get_value(request, 'asset', 'external_id'),
-        "-",
+        get_req_parameter(request,"subscriptionID"),
         get_value(request['asset'],'connection','type'), 
         convert_to_datetime(
             get_basic_value(request, 'created'),
@@ -91,8 +92,8 @@ def _process_line(request, connection):
         get_value(request['asset']['tiers'], 'customer', 'external_id'),
         get_value(request['asset']['tiers'],'customer','tax_id'),
         get_value(request['asset']['tiers']['customer']['contact_info'],'contact','first_name'),
-        'Bitdefender ID', 
-        'Fractalia ID', 
+        get_req_parameter(request,"subscriptionID")
+        get_req_parameter(request,"SubscriptionID_Fractalia")
         get_value(request['asset']['tiers'], 'tier1', 'name'),
         get_value(request['asset']['tiers'], 'tier1', 'external_id'),
         get_value(request['asset']['tiers'], 'tier1', 'name'),
