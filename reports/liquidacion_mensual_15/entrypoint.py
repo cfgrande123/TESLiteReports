@@ -99,7 +99,9 @@ def _process_line(request, connection):
         get_value(request['asset']['tiers'], 'tier1', 'external_id'),
         get_value(request['asset'], 'product', 'id'),
         get_value(request['asset'], 'product', 'name'),
-        get_value(request['asset']['events'], 'updated', 'at')) if get_value(request, 'asset', 'status')=='terminated' else '-'
+        get_value(request['asset']['events'], 'updated', 'at')) 
+            if get_value(request, 'asset', 'status')=='terminated' 
+            else '-',
         
     )
 
