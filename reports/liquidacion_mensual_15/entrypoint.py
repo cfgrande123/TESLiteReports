@@ -50,9 +50,11 @@ def generate(
 def _get_requests(client, parameters):
     query = R()
     today = datetime.utcnow()
+    launch_date=datetime(2024, 9, 1, 0, 0, 00, 00000)
     day_16_of_this_month = today.replace(day=16, month=today.month, year=today.year, hour=0, minute=0, second=0)
     query = R()
     query &= R().updated.lt(day_16_of_this_month)
+    query &= R().created.gt(launch_date)
     query &= R().asset.product.id.eq("PRD-825-728-174")
     #if parameters.get('mkp') and parameters['mkp']['all'] is False:
     #    query &= R().asset.marketplace.id.oneof(parameters['mkp']['choices'])
