@@ -62,7 +62,6 @@ def _get_requests(client, parameters):
 
     return client.requests.filter(query).select(
         '-asset.items',
-        '-asset.params',
         '-asset.configuration',
         '-activation_key',
         '-template',
