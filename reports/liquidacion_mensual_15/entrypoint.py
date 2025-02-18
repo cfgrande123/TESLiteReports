@@ -6,7 +6,7 @@
 
 from connect.client import R
 
-from ..utils import convert_to_datetime, get_sub_parameter, get_basic_value, get_value, today_str
+from ..utils import convert_to_datetime, get_req_parameter, get_basic_value, get_value, today_str
 from datetime import datetime, timedelta
 HEADERS = (
     'Subscription ID', 'Subscription External ID', 'Vendor primary key',
