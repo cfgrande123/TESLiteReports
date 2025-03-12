@@ -55,8 +55,8 @@ def _get_requests(client, parameters):
 
    
     query = R()
-    if parameters.get('date') and parameters['date']['after'] != '':       
-        query &= R().updated.lt(parameters['date']['before'])
+    if parameters.get('date') and parameters['date']['before'] != '':       
+        query &= R().created.lt(parameters['date']['before'])
     query &= R().created.gt(launch_date)
     query &= R().asset.product.id.eq("PRD-825-728-174")
     #if parameters.get('mkp') and parameters['mkp']['all'] is False:
