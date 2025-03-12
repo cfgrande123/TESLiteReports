@@ -52,15 +52,13 @@ def _get_requests(client, parameters):
     query = R()
     today = datetime.utcnow()
     launch_date=datetime(2024, 9, 1, 0, 0, 00, 00000)
-
+    all_status = ['pending', 'approved', 'failed']
    
-    query = R()
     if parameters.get('date') and parameters['date']['before'] != '':       
         query &= R().created.lt(parameters['date']['before'])
     query &= R().created.gt(launch_date)
     query &= R().asset.product.id.eq("PRD-825-728-174")
-    #if parameters.get('mkp') and parameters['mkp']['all'] is False:
-    #    query &= R().asset.marketplace.id.oneof(parameters['mkp']['choices'])
+    query &= R().status.oneof(all_status)
     query &= R().asset__connection__type.eq('production')
     query &= R().type.eq('purchase')
     
