@@ -4,10 +4,11 @@
 # All rights reserved.
 #
 
+
 from connect.client import R
 
-from ..utils import convert_to_datetime, get_sub_parameter, get_value
-    
+from ..utils import convert_to_datetime, get_req_parameter, get_basic_value, get_value, today_str
+from datetime import datetime, timedelta
 HEADERS = (
     'Subscription ID', 'Subscription External ID', 'Vendor primary key',
     'Subscription Type', 'Creation date', 'Updated date', 'Status', 'Billing Period',
@@ -15,9 +16,8 @@ HEADERS = (
     'Customer ID', 'Customer Name', 'Customer External ID',
     'Tax ID', 'KD',	'Bitdefender ID', 'Fractalia ID', 'Tier 1 Name', 'Tier 1 External ID',
     'Vendor Account ID', 'Vendor Account Name',
-    'Product ID', 'Product Name', 'Customer Email',
+    'Product ID', 'Product Name', 'Email',
 )
-
 def generate(
     client=None,
     parameters=None,
@@ -25,119 +25,86 @@ def generate(
     renderer_type=None,
     extra_context_callback=None,
 ):
-    products_primary_keys = {}
-    subscriptions = _get_subscriptions(client, parameters)
-    
-    total = subscriptions.count()
+    requests = _get_requests(client, parameters)
     progress = 0
+    total = requests.count()
     if renderer_type == 'csv':
         yield HEADERS
         progress += 1
         total += 1
         progress_callback(progress, total)
 
-    for subscription in subscriptions:
-        primary_vendor_key = get_sub_parameter(subscription,"subscriptionID")
-        secondary_vendor_key =  get_sub_parameter(subscription,"SubscriptionID_Fractalia")
+    for request in requests:
+        connection = request['asset']['connection']
+        
         if renderer_type == 'json':
             yield {
                 HEADERS[idx].replace(' ', '_').lower(): value
-                for idx, value in enumerate(_process_line(subscription, primary_vendor_key,secondary_vendor_key))
+                for idx, value in enumerate(_process_line(request, connection))
             }
         else:
-            yield _process_line(subscription, primary_vendor_key,secondary_vendor_key)
+            yield _process_line(request, connection)
         progress += 1
         progress_callback(progress, total)
 
-    
-def _get_subscriptions(client, parameters):
+
+def _get_requests(client, parameters):
+    query = R()
+    today = datetime.utcnow()
+    launch_date=datetime(2024, 9, 1, 0, 0, 00, 00000)
+
+   
     query = R()
     if parameters.get('date') and parameters['date']['after'] != '':       
-        query &= R().events.created.at.le(parameters['date']['before'])
-    query &= R().product.id.eq("PRD-825-728-174")
-    if parameters.get('mkp') and parameters['mkp']['all'] is False:
-        query &= R().marketplace.id.oneof(parameters['mkp']['choices'])
-    if parameters.get('period') and parameters['period']['all'] is False:
-        query &= R().billing.period.uom.oneof(parameters['period']['choices'])
-    query &= R().connection.type.eq('production')
-    return client.ns('subscriptions').assets.filter(query)
-
-def calculate_period(delta, uom):
-    if delta == 1:
-        if uom == 'monthly':
-            return 'Monthly'
-        return 'Yearly'
-    else:
-        if uom == 'monthly':
-            return f'{int(delta)} Months'
-        return f'{int(delta)} Years'
-
-
-def get_anniversary_day(subscription_billing):
-    if 'anniversary' in subscription_billing and 'day' in subscription_billing['anniversary']:
-        return subscription_billing['anniversary']['day']
-    return '-'
-
-
-def get_anniversary_month(subscription_billing):
-    if 'anniversary' in subscription_billing and 'month' in subscription_billing['anniversary']:
-        return subscription_billing['anniversary']['month']
-    return '-'
-
-
-def search_product_primary(parameters):
-    for param in parameters:
-        if param['constraints'].get('reconciliation'):
-            return param['name']
-
-
-def get_primary_key(parameters, product_id, client, products_primary_keys):
-    try:
-        if product_id not in products_primary_keys:
-            prod_parameters = client.collection(
-                'products',
-            )[product_id].collection(
-                'parameters',
-            ).all()
-            primary_id = search_product_primary(prod_parameters)
-            products_primary_keys[product_id] = primary_id
-        for param in parameters:
-            if param['id'] == products_primary_keys[product_id]:
-                return param['value'] if 'value' in param and len(param['value']) > 0 else '-'
-    except ClientError:
-        pass
-    return '-'
-
-
-def _process_line(subscription, primary_vendor_key,secondary_vendor_key):
-    return (
-        subscription.get('id'),
-        subscription.get('external_id', '-'),
-        primary_vendor_key,
-        get_value(subscription, 'connection', 'type'),
-        convert_to_datetime(subscription['events']['created']['at']),
-        convert_to_datetime(subscription['events']['updated']['at']),
-        subscription.get('status'),
-        calculate_period(
-            subscription['billing']['period']['delta'],
-            subscription['billing']['period']['uom'],
-        ) if 'billing' in subscription else '-',
-        get_anniversary_day(subscription['billing']) if 'billing' in subscription else '-',
-        get_anniversary_month(subscription['billing']) if 'billing' in subscription else '-',
-        subscription['contract']['id'] if 'contract' in subscription else '-',
-        subscription['contract']['name'] if 'contract' in subscription else '-',
-        get_value(subscription.get('tiers', ''), 'customer', 'id'),
-        get_value(subscription.get('tiers', ''), 'customer', 'name'),
-        get_value(subscription.get('tiers', ''), 'customer', 'external_id'),
-        subscription["tiers"]["customer"]["tax_id"],
-        subscription["tiers"]["customer"]["contact_info"]["contact"]["first_name"],
-        primary_vendor_key,
-        secondary_vendor_key,
-        get_value(subscription.get('tiers', ''), 'tier1', 'name'),
-        get_value(subscription.get('tiers', ''), 'tier1', 'external_id'),
-        get_value(subscription['connection'], 'vendor', 'id'),
-        get_value(subscription['connection'], 'vendor', 'name'),
-        get_value(subscription, 'product', 'id'),
-        get_value(subscription, 'product', 'name'),
-        subscription["tiers"]["customer"]["contact_info"]["contact"]["email"],
+        query &= R().updated.lt(parameters['date']['before'])
+    query &= R().created.gt(launch_date)
+    query &= R().asset.product.id.eq("PRD-825-728-174")
+    #if parameters.get('mkp') and parameters['mkp']['all'] is False:
+    #    query &= R().asset.marketplace.id.oneof(parameters['mkp']['choices'])
+    query &= R().asset__connection__type.eq('production')
+    query &= R().type.eq('purchase')
+    
+    return client.requests.filter(query).select(
+        '-asset.items',
+        '-asset.configuration',
+        '-activation_key',
+        '-template',
     )
+
+
+def _process_line(request, connection):
+    return (
+        get_value(request, 'asset', 'id'),
+        get_value(request, 'asset', 'external_id'),
+        get_req_parameter(request,"subscriptionID"),
+        get_value(request['asset'],'connection','type'), 
+        convert_to_datetime(
+            get_basic_value(request, 'created'),
+        ), 
+        convert_to_datetime(
+            get_basic_value(request, 'updated'),
+        ),
+        get_value(request, 'asset', 'status'), 
+        'monthly',
+        '-', 
+        '-',
+        get_value(request['asset'], 'contract', 'id'),
+        get_value(request['asset'], 'contract', 'name'),
+        get_value(request['asset']['tiers'], 'customer', 'id'),
+        get_value(request['asset']['tiers'], 'customer', 'name'),
+        get_value(request['asset']['tiers'], 'customer', 'external_id'),
+        get_value(request['asset']['tiers'],'customer','tax_id'),
+        get_value(request['asset']['tiers']['customer']['contact_info'],'contact','first_name'),
+        get_req_parameter(request,"subscriptionID"),
+        get_req_parameter(request,"SubscriptionID_Fractalia"),
+        get_value(request['asset']['tiers'], 'tier1', 'name'),
+        get_value(request['asset']['tiers'], 'tier1', 'external_id'),
+        get_value(request['asset']['tiers'], 'tier1', 'name'),
+        get_value(request['asset']['tiers'], 'tier1', 'external_id'),
+        get_value(request['asset'], 'product', 'id'),
+        get_value(request['asset'], 'product', 'name'),
+        get_value(request['asset']['tiers']['customer']['contact_info'],'contact','email'),
+        
+    )
+
+
